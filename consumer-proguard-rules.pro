@@ -1,1 +1,0 @@
--keep public class pl.droidsonroids.gif.GifIOException{<init>(int);}

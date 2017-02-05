@@ -5,14 +5,15 @@ android-gif-drawable
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-android--gif--drawable-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/1147)
 [![Android-Libs](https://img.shields.io/badge/Android--Libs-android--gif--drawable-orange.svg?style=flat)](http://android-libs.com/lib/android-gif-drawable)
 [![Android Weekly](http://img.shields.io/badge/Android%20Weekly-%2393-2CB3E5.svg?style=flat)](http://androidweekly.net/issues/issue-93)
-[![API](https://img.shields.io/badge/API-8%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=8)
+[![API](https://img.shields.io/badge/API-9%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=9)
+[![Javadocs](http://www.javadoc.io/badge/pl.droidsonroids.gif/android-gif-drawable.svg)](http://www.javadoc.io/doc/pl.droidsonroids.gif/android-gif-drawable)
 
 `View`s and `Drawable` for animated GIFs in Android.
 
 ## Overview
 Bundled GIFLib via JNI is used to render frames. This way should be more efficient than `WebView` or `Movie` classes.
 
-### [Javadoc](http://koral--.github.io/android-gif-drawable/javadoc/)
+### [Javadoc](http://www.javadoc.io/doc/pl.droidsonroids.gif/android-gif-drawable)
 
 ### Setup
 
@@ -20,7 +21,7 @@ Bundled GIFLib via JNI is used to render frames. This way should be more efficie
 Insert the following dependency to `build.gradle` file of your project.
 ```groovy
 dependencies {
-    compile 'pl.droidsonroids.gif:android-gif-drawable:1.1.+'
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.4'
 }
 ```
 Note that Maven central repository should be defined eg. in top-level `build.gradle` like this:
@@ -36,7 +37,17 @@ allprojects {
     }
 }
 ```
-
+#### Gradle, snapshot repository
+Current development builds (build from `dev` branch) are published to OSS snapshot repository. To use them, specify repository URL in `repositories` block:
+```groovy
+repositories {
+	mavenCentral()
+	maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+}
+dependencies {
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.+'
+}
+```
 #### Maven dependency
 
 ```xml
@@ -55,16 +66,17 @@ See [Sample eclipse project](https://github.com/koral--/android-gif-drawable-ecl
 **[Latest release downloads](https://github.com/koral--/android-gif-drawable/releases/latest)**
 
 ###Requirements
-+ Android 2.2+ (API level 8+)
++ Android 2.3+ (API level 9+)
 + for `GifTextureView` Android 4.0+ (API level 14+) and hardware-accelerated rendering
++ for `GifTexImage2D` OpenGL ES 2.0+
 
 ####Building from source
 + [Android NDK](http://developer.android.com/tools/sdk/ndk/index.html) needed to compile native sources
 
 ##Usage
 
-###[Sample project](https://github.com/koral--/android-gif-drawable-sample)
-Sample project is under construction. Not all features are covered yet.
+###Sample project
+See `sample` directory. Sample project is under construction. Not all features are covered yet.
 
 ###From XML
 The simplest way is to use `GifImageView` (or `GifImageButton`) like a normal `ImageView`:
@@ -103,6 +115,10 @@ mentioned Views work like plain `ImageView` and `ImageButton`.
 		
 		//resource (drawable or raw)
 		GifDrawable gifFromResource = new GifDrawable( getResources(), R.drawable.anim );
+		
+		//Uri
+		ContentResolver contentResolver = ... //can be null for file:// Uris
+		GifDrawable gifFromUri = new GifDrawable( contentResolver, gifUri );
 
 		//byte array
 		byte[] rawGifBytes = ...
@@ -135,9 +151,9 @@ mentioned Views work like plain `ImageView` and `ImageButton`.
 ````
 InputStreams are closed automatically in finalizer if GifDrawable is no longer needed 
 so you don't need to explicitly close them. Calling `recycle()` will also close 
-underlaying input source. 
+underlying input source. 
 
-Note that all input sources need to have ability to rewind to the begining. It is required to correctly play animated GIFs 
+Note that all input sources need to have ability to rewind to the beginning. It is required to correctly play animated GIFs 
 (where animation is repeatable) since subsequent frames are decoded on demand from source.
 
 ####Animation control
@@ -158,15 +174,15 @@ Standard controls for a MediaPlayer (like in [VideoView](http://developer.androi
 Just set `GifDrawable` as MediaPlayer on your [MediaController](http://developer.android.com/reference/android/widget/MediaController.html) like this:
 ```java
 	@Override
-	protected void onCreate ( Bundle savedInstanceState )
+	protected void onCreate (Bundle savedInstanceState)
 	{
-		super.onCreate( savedInstanceState );
-		GifImageButton gib = new GifImageButton( this );
-		setContentView( gib );
-		gib.setImageResource( R.drawable.sample );
-		final MediaController mc = new MediaController( this );
-		mc.setMediaPlayer( ( GifDrawable ) gib.getDrawable() );
-		mc.setAnchorView( gib );
+		super.onCreate(savedInstanceState);
+		GifImageButton gib = new GifImageButton( this);
+		setContentView(gib);
+		gib.setImageResource(R.drawable.sample);
+		final MediaController mc = new MediaController(this);
+		mc.setMediaPlayer((GifDrawable)gib.getDrawable());
+		mc.setAnchorView(gib);
 		gib.setOnClickListener( new OnClickListener()
 		{
 			@Override
@@ -210,6 +226,13 @@ To solve that create `MultiCallback` instance, add `View`s to it and set callbac
 + `isRecycled()` - checks whether drawable is recycled
 + `getError()` - returns last error details
 
+##Upgrading from 1.2.3
+Meaningful only if consumer proguard rules (bundled with library) are **not** used (they are used by default by Gradle).
++ Proguard rule has changed to `-keep public class pl.droidsonroids.gif.GifIOException{<init>(int, java.lang.String);}` 
+
+##Upgrading from 1.1.17
+1.1.17 is the last version supporting API level 8 (Froyo). Starting from 1.2.0 minimum API level is 9 (Gingerbread).
+
 ##Upgrading from 1.1.13
 Handling of several edge cases has been changed:
 + `GifDrawable#getNumberOfFrames()` now returns 0 when `GifDrawable` is recycled
@@ -252,10 +275,14 @@ even if drawable is not drawn. However rendering is not running if drawable is n
 That method can be used to control drawable visibility in cases when it is not already handled by Android framework.
 
 ##References
-This library uses code from [GIFLib](http://giflib.sourceforge.net/) 5.1.2 and [SKIA](https://code.google.com/p/skia/).
+This library uses code from [GIFLib](http://giflib.sourceforge.net/) 5.1.3 and [SKIA](https://code.google.com/p/skia/).
 
 ###Projects using android-gif-drawable
 [ImageFactory](https://github.com/Doctoror/ImageFactory)
+
+[NativeScript Plugin by Brad Martin](https://github.com/bradmartin/nativescript-gif) available on [NPM](https://www.npmjs.com/package/nativescript-gif)
+
+[Sketch](https://github.com/xiaopansky/Sketch) Powerful and comprehensive image loader on Android, with support for GIF, gesture zooming, block display super large image.
 
 Want to include your project here? [Fill an issue](https://github.com/koral--/android-gif-drawable/issues/new)
 
